@@ -153,7 +153,9 @@ body {
 
 .message {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     max-width: 85%;
     opacity: 0;
     transform: translateY(10px);
@@ -169,7 +171,7 @@ body {
 
 .message.user {
     align-self: flex-end;
-    flex-direction: row-reverse;
+    align-items: flex-end;
 }
 
 .avatar {
@@ -197,6 +199,42 @@ body {
     border-radius: var(--radius-lg);
     border-bottom-right-radius: 4px;
     color: var(--user-msg-text);
+}
+
+.message-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 2px;
+    padding-left: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.message:hover .message-actions {
+    opacity: 1;
+}
+
+.tts-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.tts-btn:hover {
+    color: var(--accent);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.tts-btn.speaking {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
 }
 
 /* Markdown styling within minimal theme */
