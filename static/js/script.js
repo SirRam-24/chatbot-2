@@ -3,6 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
     const sendBtn = document.getElementById('send-btn');
+    const imageUpload = document.getElementById('image-upload');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+
+    let selectedImages = [];
 
     // Configure marked wrapper with highlight.js
     marked.setOptions({
@@ -14,22 +18,75 @@ document.addEventListener('DOMContentLoaded', () => {
         breaks: true
     });
 
-    // Auto-resize textarea
-    userInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight < 150 ? this.scrollHeight : 150) + 'px';
-        if (this.value.trim() === '') {
+    function checkEmptyInput() {
+        if (userInput.value.trim() === '' && selectedImages.length === 0) {
             sendBtn.disabled = true;
         } else {
             sendBtn.disabled = false;
         }
+    }
+
+    // Auto-resize textarea
+    userInput.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight < 150 ? this.scrollHeight : 150) + 'px';
+        checkEmptyInput();
     });
+
+    // Image selection handler
+    imageUpload.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+
+        if (selectedImages.length + files.length > 5) {
+            alert('You can only upload a maximum of 5 images.');
+            return;
+        }
+
+        files.forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUrl = e.target.result;
+                selectedImages.push({ file, dataUrl });
+                renderImagePreviews();
+                checkEmptyInput();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        imageUpload.value = '';
+    });
+
+    function renderImagePreviews() {
+        imagePreviewContainer.innerHTML = '';
+        selectedImages.forEach((imgObj, index) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'img-preview-wrapper';
+
+            const imgEl = document.createElement('img');
+            imgEl.src = imgObj.dataUrl;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'img-remove-btn';
+            removeBtn.innerHTML = '×';
+            removeBtn.onclick = () => {
+                selectedImages.splice(index, 1);
+                renderImagePreviews();
+                checkEmptyInput();
+            };
+
+            wrapper.appendChild(imgEl);
+            wrapper.appendChild(removeBtn);
+            imagePreviewContainer.appendChild(wrapper);
+        });
+    }
 
     // Submit on Enter (Shift+Enter for new line)
     userInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (this.value.trim() !== '') {
+            if (this.value.trim() !== '' || selectedImages.length > 0) {
                 chatForm.dispatchEvent(new Event('submit'));
             }
         }
@@ -42,16 +99,59 @@ document.addEventListener('DOMContentLoaded', () => {
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = userInput.value.trim();
-        if (!text) return;
+        if (!text && selectedImages.length === 0) return;
 
         // Reset input
         userInput.value = '';
         userInput.style.height = 'auto';
         sendBtn.disabled = true;
 
+        const currentImages = [...selectedImages];
+        selectedImages = [];
+        renderImagePreviews();
+
+        let messageContent = text;
+        let uiContent = text;
+
+        if (currentImages.length > 0) {
+            messageContent = [];
+            if (text) {
+                messageContent.push({ type: "text", text: text });
+            }
+
+            uiContent = document.createDocumentFragment();
+            if (text) {
+                const textNode = document.createElement('div');
+                textNode.textContent = text;
+                uiContent.appendChild(textNode);
+            }
+
+            const imgContainer = document.createElement('div');
+            imgContainer.style.display = 'flex';
+            imgContainer.style.gap = '8px';
+            imgContainer.style.flexWrap = 'wrap';
+            imgContainer.style.marginTop = text ? '8px' : '0';
+
+            currentImages.forEach(img => {
+                messageContent.push({
+                    type: "image_url",
+                    image_url: { url: img.dataUrl }
+                });
+
+                const imgEl = document.createElement('img');
+                imgEl.src = img.dataUrl;
+                imgEl.style.maxWidth = '200px';
+                imgEl.style.maxHeight = '200px';
+                imgEl.style.borderRadius = '8px';
+                imgEl.style.objectFit = 'cover';
+                imgContainer.appendChild(imgEl);
+            });
+            uiContent.appendChild(imgContainer);
+        }
+
         // Add user message to UI
-        appendMessage('user', text);
-        messageHistory.push({ role: 'user', content: text });
+        appendMessage('user', uiContent);
+        messageHistory.push({ role: 'user', content: messageContent });
 
         // Add placeholder assistant message
         const assistantId = 'msg-' + Date.now();
@@ -162,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function appendMessage(role, text) {
+    function appendMessage(role, data) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${role}`;
 
@@ -170,9 +270,13 @@ document.addEventListener('DOMContentLoaded', () => {
         contentDiv.className = 'content';
 
         if (role === 'user') {
-            contentDiv.textContent = text;
+            if (typeof data === 'string') {
+                contentDiv.textContent = data;
+            } else {
+                contentDiv.appendChild(data);
+            }
         } else {
-            contentDiv.innerHTML = marked.parse(text);
+            contentDiv.innerHTML = marked.parse(data);
         }
 
         msgDiv.appendChild(contentDiv);

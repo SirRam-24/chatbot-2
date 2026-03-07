@@ -298,6 +298,69 @@ body {
     padding: 20px 32px 32px;
     background: var(--bg-container);
     border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.image-preview-container {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    transition: margin 0.2s ease;
+}
+
+.image-preview-container:not(:empty) {
+    margin-bottom: 12px;
+}
+
+.img-preview-wrapper {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.img-preview-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-remove-btn {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.upload-btn {
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.upload-btn:hover {
+    background-color: #e2e8f0;
+    color: var(--text-primary);
 }
 
 #chat-form {
