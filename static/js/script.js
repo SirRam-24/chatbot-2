@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (this.value.trim() !== '' || selectedImages.length > 0) {
-                chatForm.dispatchEvent(new Event('submit'));
+                handleChatSubmit(e);
             }
         }
     });
@@ -141,8 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // We will store the full chat history here to send to the API
     ];
 
-    chatForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    async function handleChatSubmit(e) {
+        if (e) e.preventDefault();
         const text = userInput.value.trim();
         if (!text && selectedImages.length === 0) return;
 
@@ -312,7 +312,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const msgEl = document.getElementById(assistantId);
             msgEl.querySelector('.content').innerHTML = '<span style="color: #ff7b72;">Sorry, there was an error communicating with the server. Please try again later.</span>';
         }
+    } // End of handleChatSubmit
+
+    // Bind execution to events
+    chatForm.addEventListener('submit', handleChatSubmit);
+
+    sendBtn.addEventListener('click', (e) => {
+        if (!sendBtn.disabled) {
+            e.preventDefault();
+            handleChatSubmit(e);
+        }
     });
+
+    // Fallback for some touch devices
+    sendBtn.addEventListener('touchstart', (e) => {
+        if (!sendBtn.disabled) {
+            e.preventDefault(); // Prevents click from firing after touchstart
+            handleChatSubmit(e);
+        }
+    }, { passive: false });
 
     function appendMessage(role, data) {
         const msgDiv = document.createElement('div');
@@ -390,4 +408,5 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
+
 });
