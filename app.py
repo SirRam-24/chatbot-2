@@ -52,7 +52,7 @@ Maintain confidence and clarity in all responses."""
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+        "model": "deepseek-ai/deepseek-v3.1-terminus",
         "messages": full_messages,
         "max_tokens": 16384,
         "temperature": 0.60,
