@@ -52,7 +52,7 @@ Maintain confidence and clarity in all responses."""
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "microsoft/phi-4-mini-instruct",
+        "model": "minimaxai/minimax-m2.5",
         "messages": full_messages,
         "max_tokens": 16384,
         "temperature": 0.60,
