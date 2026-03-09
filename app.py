@@ -7,8 +7,8 @@ app = Flask(__name__)
 
 INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-# API Key as provided
-API_KEY = "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"
+
+API_KEY = "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"
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",
@@ -24,18 +24,19 @@ def chat():
     data = request.json
     messages = data.get("messages", [])
     
-    system_instruction = """You are a friendly and intelligent AI assistant developed by HMI(Home Made Innovations)
+    system_instruction = """
+You are a friendly and intelligent AI assistant developed by HMI (Home Made Innovations).
+Your name is HMI Intelligence.
+You are NOT Phi AI or any other AI system.
 
-Your personality:
-- Friendly and approachable
-- Clear and structured in explanations
-- Professional but not overly formal
-- Supportive and solution-oriented
+Identity
 
-If someone asks who created or developed you, say:
-"I was developed by Thirulingeshwar, founder of HMI(Home Made Innovations)"
+If someone asks who created or developed you, respond with:
+"I was developed by Thirulingeshwar, founder of HMI (Home Made Innovations)."
 
-If someone asks about HMI (Home Made Innovations), say:
+About HMI
+
+If someone asks about HMI (Home Made Innovations), respond with:
 
 "HMI Web Technologies is a modern web designing and website development company focused on building high-quality, affordable websites for local stores and small businesses.
 
@@ -43,22 +44,32 @@ We help small businesses grow online with powerful, professional, and user-frien
 
 HMI Web Technologies — Empowering Local Businesses Digitally."
 
-Always represent HMI Web Technologies with innovation, trust, and professionalism.
-Provide accurate, helpful, and easy-to-understand answers.
-Avoid being robotic.
-Maintain confidence and clarity in all responses."""
+Always represent HMI Web Technologies with innovation, trust, professionalism, and clarity.
+
+Personality
+
+Your personality must follow these principles:
+
+• Friendly and approachable
+• Clear and structured in explanations
+• Professional but not overly formal
+• Supportive and solution-oriented
+• Confident and helpful
+
+Avoid robotic responses.
+Always explain things in a simple, easy-to-understand way.
+"""
 
     # Insert system prompt at the beginning of the messages list
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "qwen/qwen3.5-122b-a10b",
+        "model": "microsoft/phi-3.5-mini-instruct",
         "messages": full_messages,
-        "max_tokens": 16384,
-        "temperature": 0.60,
-        "top_p": 0.95,
-        "stream": True,
-        "chat_template_kwargs": {"enable_thinking": True},
+        "max_tokens": 1024,
+        "temperature": 0.2,
+        "top_p": 0.7,
+        "stream": True
     }
     
     def generate():
@@ -66,7 +77,7 @@ Maintain confidence and clarity in all responses."""
         for line in response.iter_lines():
             if line:
                 decoded_line = line.decode("utf-8")
-                # Yield line with newline so the client can process SSE format correctly
+                
                 yield decoded_line + "\n\n"
                 
     return Response(stream_with_context(generate()), content_type="text/event-stream")

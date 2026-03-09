@@ -5,6 +5,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('send-btn');
     const imageUpload = document.getElementById('image-upload');
     const imagePreviewContainer = document.getElementById('image-preview-container');
+    const themeToggle = document.getElementById('theme-toggle');
+    const iconLight = document.getElementById('theme-icon-light');
+    const iconDark = document.getElementById('theme-icon-dark');
+
+    // Theme logic
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.body.setAttribute('data-theme', 'dark');
+        if (iconLight) iconLight.classList.add('hidden');
+        if (iconDark) iconDark.classList.remove('hidden');
+    }
+
+    if (themeToggle && iconLight && iconDark) {
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                iconLight.classList.remove('hidden');
+                iconDark.classList.add('hidden');
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                iconLight.classList.add('hidden');
+                iconDark.classList.remove('hidden');
+            }
+        });
+    }
+
+
+    // Sidebar toggle logic
+    const sidebar = document.getElementById('sidebar');
+    const openSidebarBtn = document.getElementById('open-sidebar-btn');
+    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+
+    if (openSidebarBtn && closeSidebarBtn && sidebar) {
+        openSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+        });
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+        });
+    }
 
     let selectedImages = [];
 
@@ -19,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function checkEmptyInput() {
-        if (userInput.value.trim() === '' && selectedImages.length === 0) {
+        if (userInput.value.trim() === '') {
             sendBtn.disabled = true;
         } else {
             sendBtn.disabled = false;
@@ -173,14 +218,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const decoder = new TextDecoder('utf-8');
             let assistantResponse = '';
 
-            // Remove typing indicator before streaming starts
+            // Setup variables for stream reading
             const msgEl = document.getElementById(assistantId);
             const contentEl = msgEl.querySelector('.content');
-            contentEl.innerHTML = '';
+
+            let isFirstChunk = true;
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
+
+                // Remove typing indicator only when actual stream data starts arriving
+                if (isFirstChunk) {
+                    contentEl.innerHTML = '';
+                    isFirstChunk = false;
+                }
 
                 const chunk = decoder.decode(value, { stream: true });
                 const lines = chunk.split('\n');
@@ -266,6 +318,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${role}`;
 
+        const innerDiv = document.createElement('div');
+        innerDiv.className = 'message-inner';
+
+        // Avatar
+        const avatarDiv = document.createElement('div');
+        if (role === 'assistant') {
+            avatarDiv.className = 'avatar ai-avatar';
+            avatarDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        } else {
+            avatarDiv.className = 'avatar user-avatar';
+        }
+
         const contentDiv = document.createElement('div');
         contentDiv.className = 'content';
 
@@ -277,9 +341,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else {
             contentDiv.innerHTML = marked.parse(data);
+
+            // Apply highlighting to new blocks
+            contentDiv.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
         }
 
-        msgDiv.appendChild(contentDiv);
+        if (role === 'assistant') {
+            innerDiv.appendChild(avatarDiv);
+        }
+        innerDiv.appendChild(contentDiv);
+        msgDiv.appendChild(innerDiv);
+
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
@@ -289,17 +363,30 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.className = `message ${role}`;
         msgDiv.id = id;
 
+        const innerDiv = document.createElement('div');
+        innerDiv.className = 'message-inner';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'avatar ai-avatar';
+        avatarDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
         const contentDiv = document.createElement('div');
         contentDiv.className = 'content';
 
-        // Typing indicator
         const typingDiv = document.createElement('div');
-        typingDiv.className = 'typing-indicator';
-        typingDiv.innerHTML = '<span></span><span></span><span></span>';
+        typingDiv.className = 'skeleton-loader';
+        typingDiv.innerHTML = `
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+        `;
 
         contentDiv.appendChild(typingDiv);
 
-        msgDiv.appendChild(contentDiv);
+        innerDiv.appendChild(avatarDiv);
+        innerDiv.appendChild(contentDiv);
+        msgDiv.appendChild(innerDiv);
+
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
