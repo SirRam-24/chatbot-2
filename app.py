@@ -52,7 +52,7 @@ Maintain confidence and clarity in all responses."""
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "mistralai/devstral-2-123b-instruct-2512",
+        "model": "nvidia/llama-3.3-nemotron-super-49b-v1.5",
         "messages": full_messages,
         "max_tokens": 16384,
         "temperature": 0.60,
