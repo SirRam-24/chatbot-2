@@ -52,13 +52,13 @@ Maintain confidence and clarity in all responses."""
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "qwen/qwen3.5-397b-a17b",
+        "model": "microsoft/phi-4-mini-instruct",
         "messages": full_messages,
         "max_tokens": 16384,
         "temperature": 0.60,
         "top_p": 0.95,
         "stream": True,
-        "chat_template_kwargs": {"enable_thinking": False},
+        
     }
     
     def generate():
