@@ -2,7 +2,7 @@ import json
 import base64
 import requests
 from flask import Flask, render_template, request, Response, stream_with_context
-
+from flask_cors import CORS
 app = Flask(__name__)
 
 INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
