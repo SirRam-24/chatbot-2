@@ -52,7 +52,7 @@ Maintain confidence and clarity in all responses."""
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "minimaxai/minimax-m2.5",
+        "model": "mistralai/devstral-2-123b-instruct-2512",
         "messages": full_messages,
         "max_tokens": 16384,
         "temperature": 0.60,
