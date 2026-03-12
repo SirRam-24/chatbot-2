@@ -54,7 +54,7 @@ Maintain confidence and clarity in all responses."""
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "google/gemma-3-27b-it"",
+        "model": "google/gemma-3-27b-it",
         "messages": full_messages,
         "max_tokens": 16384,
         "temperature": 0.60,
