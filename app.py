@@ -54,7 +54,7 @@ Maintain confidence and clarity in all responses."""
     full_messages = [{"role": "system", "content": system_instruction}] + messages
     
     payload = {
-        "model": "deepseek-ai/deepseek-v3.1-terminus",
+        "model": "moonshotai/kimi-k2.5",
         "messages": full_messages,
         "max_tokens": 16384,
         "temperature": 0.60,
